@@ -8,4 +8,11 @@ class CountDataDao {
   void saveCountData(CountData countData) {
     _collection.add(countData.toJson());
   }
+
+  Stream<QuerySnapshot> getSnapshots() {
+    return _collection
+        .orderBy('dateTime', descending: true)
+        .limit(5)
+        .snapshots();
+  }
 }
