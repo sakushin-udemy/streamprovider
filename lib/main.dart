@@ -1,6 +1,12 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:streamprovider/repository/count_data_dao.dart';
 
-void main() {
+import 'data/count_data.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(const MyApp());
 }
 
@@ -31,11 +37,18 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  CountDataDao _countDataDao = CountDataDao();
 
   void _incrementCounter() {
     setState(() {
       _counter++;
     });
+
+    CountData countData = CountData(
+      dateTime: DateTime.now(),
+      count: _counter,
+    );
+    _countDataDao.saveCountData(countData);
   }
 
   @override
