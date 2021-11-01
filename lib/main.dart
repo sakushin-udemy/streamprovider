@@ -1,7 +1,14 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:streamprovider/repository/count_data_dao.dart';
 
-void main() {
-  runApp(const MyApp());
+import 'data/count_data.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(ProviderScope(child: const MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -31,11 +38,35 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  CountDataDao _countDataDao = CountDataDao();
+  late StreamProvider _streamProvider;
+
+  @override
+  void initState() {
+    _streamProvider = StreamProvider<List<CountData>>((ref) => _countDataDao
+        .getSnapshots()
+        .map((e) => e.docs.map((data) => _convert(data.data())).toList()));
+  }
+
+  CountData _convert(Object? obj) {
+    if (obj == null) {
+      return CountData(dateTime: DateTime.now(), count: -1);
+    }
+
+    var map = obj as Map<String, dynamic>;
+    return CountData.fromJson(map);
+  }
 
   void _incrementCounter() {
     setState(() {
       _counter++;
     });
+
+    CountData countData = CountData(
+      dateTime: DateTime.now(),
+      count: _counter,
+    );
+    _countDataDao.saveCountData(countData);
   }
 
   @override
@@ -56,6 +87,29 @@ class _MyHomePageState extends State<MyHomePage> {
               '$_counter',
               style: Theme.of(context).textTheme.headline4,
             ),
+            Consumer(builder: (context, ref, child) {
+              final provider = ref.watch(_streamProvider);
+              return provider.when(
+                  loading: (data) => const CircularProgressIndicator(),
+                  error: (error, stack, data) => Text('Error: $error'),
+                  data: (data) {
+                    return ListView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemCount: data.length,
+                        itemBuilder: (context, index) {
+                          CountData countData = data[index];
+                          return Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: ListTile(
+                              title: Text('${countData.dateTime}'),
+                              trailing: Text('${countData.count}'),
+                              tileColor: Colors.lightBlueAccent,
+                            ),
+                          );
+                        });
+                  });
+            }),
           ],
         ),
       ),
