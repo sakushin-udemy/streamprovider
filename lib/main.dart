@@ -90,8 +90,8 @@ class _MyHomePageState extends State<MyHomePage> {
             Consumer(builder: (context, ref, child) {
               final provider = ref.watch(_streamProvider);
               return provider.when(
-                  loading: (data) => const CircularProgressIndicator(),
-                  error: (error, stack, data) => Text('Error: $error'),
+                  loading: () => const CircularProgressIndicator(),
+                  error: (error, stack) => Text('Error: $error'),
                   data: (data) {
                     return ListView.builder(
                         shrinkWrap: true,
