@@ -10,9 +10,6 @@ class CountDataDao {
   }
 
   Stream<QuerySnapshot> getSnapshots() {
-    return _collection
-        .orderBy('dateTime', descending: true)
-        .limit(5)
-        .snapshots();
+    return _collection.orderBy('dateTime', descending: true).snapshots();
   }
 }
